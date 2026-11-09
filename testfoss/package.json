@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Pinned browser tooling for the Testfoss Rive demo",
+  "devDependencies": {
+    "lmwebtest": "git+https://github.com/lmctl-ai/lmwebtest.git#2920befd355eacc654697820d690db074e94dce3"
+  }
+}

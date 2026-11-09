@@ -1,0 +1,36 @@
+let base_url = env("TESTFOSS_URL", "http://127.0.0.1:8104/testfoss/demo/");
+program = _lmcode_ cli="lmwebtest playwright";
+let b = pw.launch("chromium");
+let p = b.new_page();
+p.set_viewport(1100, 430);
+p.set_default_timeout(60000);
+p.goto(pw.env("TESTFOSS_URL"));
+p.wait_for_function("Number(document.querySelector('#rive-canvas')?.dataset.frames) >= 3");
+let before = p.evaluate("document.querySelector('#rive-canvas').dataset.frames");
+p.wait_for_timeout(750);
+let after = p.evaluate("document.querySelector('#rive-canvas').dataset.frames");
+$return.frames_before = before;
+$return.frames_after = after;
+$return.canvas = p.evaluate("(() => { const canvas = document.querySelector('#rive-canvas'); const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data; let occupiedPixels = 0; const colors = new Set(); for (let index = 0; index < pixels.length; index += 4) { if (pixels[index + 3] > 0 && (pixels[index] < 245 || pixels[index + 1] < 245 || pixels[index + 2] < 245)) occupiedPixels += 1; colors.add((pixels[index] >> 4) + ',' + (pixels[index + 1] >> 4) + ',' + (pixels[index + 2] >> 4) + ',' + (pixels[index + 3] >> 4)); } return {width: canvas.width, height: canvas.height, occupiedPixels, colorBuckets: colors.size}; })()");
+$return.page_errors = p.page_errors();
+$return.failed_requests = p.failed_requests();
+$return.http_errors = p.http_errors();
+p.screenshot("testfoss/results/rive.png", true);
+b.close();
+end _lmcode_
+
+let res = run_lmcode(program, {command: ["lmwebtest", "playwright", "--lmcode", "$DSLFILE"]});
+write_json("testfoss/results/browser.json", res);
+require(res.get("ok", false), json_stringify(res));
+let r = res.get("result", {});
+let canvas = json_parse(r.get("canvas", "{}"));
+let frames_before = num(json_parse(r.get("frames_before", "0")));
+let frames_after = num(json_parse(r.get("frames_after", "0")));
+require(frames_after > frames_before, "Rive animation frames must advance");
+require(canvas.get("width", 0) == 1000 && canvas.get("height", 0) == 250, "Unexpected Rive canvas dimensions");
+require(canvas.get("occupiedPixels", 0) > 1000, "Rive canvas has too little rendered content");
+require(canvas.get("colorBuckets", 0) > 20, "Rive canvas has too little color variation");
+require(r.get("page_errors", "") == "[]", r.get("page_errors", ""));
+require(r.get("failed_requests", "") == "[]", r.get("failed_requests", ""));
+require(r.get("http_errors", "") == "[]", r.get("http_errors", ""));
+println("Rive canvas-single animation and canvas checks passed");

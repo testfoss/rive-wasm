@@ -89,3 +89,7 @@ We love contributions! Check out our [contributing docs](./CONTRIBUTING.md) to g
 ## Issues
 
 Have an issue with using the runtime, or want to suggest a feature/API to help make your development life better? Log an issue in our [issues](https://github.com/rive-app/rive-wasm/issues) tab! You can also browse older issues and discussion threads there to see solutions that may have worked for common problems.
+
+## Testfoss demo
+
+The additive `testfoss-demo` branch builds `canvas-single` with Emscripten 4.0.23 and checks four local animations in Chromium through `lmwebtest`. See [the demo guide](testfoss/README.md) for commands and [the provenance record](durable-memory/testfoss-demo.md) for the pinned runtime and limitations. Run `./testfoss/build.sh` followed by `./testfoss/browser.sh`.
